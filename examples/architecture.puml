@@ -1,49 +1,55 @@
 @startuml
 cloud {
-    [GitHub] as github
-}
-
-package "Local Machine" {
-    [nodejs] as scrape
-}
-
-package "GCP" {
-    database "Cloud Datastore" as datastore {
-        [entity]
+    package "GitHub" as github{
+        database "msa-recap repository"  {
+            [Source Code] as SC
+            [GitHub Actions] as GA
+        }
     }
+}
+
+cloud {
+    [Internet] as internet
+}
+
+package "Azure" {
     
-    database "Cloud Storage" as gcs {
-        [bucket]
+    database "Azure Cloud Storage" as cs {
+        [Video Storage bucket]
     }
 
-    node "App Engine" {
-        frame "Standard" {
-            [indexer]
-            [web]
+    node "Azure Function App" as FA {
+        frame "Web App" as WA {
+            [Azure Upload] as AU
+            [Audio Capture] as AC
+            [Video Capture] as VC
+            [Video Upload] as VU
+            [Video Download] as VD
+            [Video Playback] as VP
+            [Feedback Form] as FF
+            [HTML Web Pages] as HTML
+
         }
-        frame "Flexible" {
-            [syntax_checker]
-            [renderer]
+
+        frame "API" {
+            [Azure API]
+            [HTTPJSONTranscript]
+            [ProjectName]
         }
-        database "TaskQueue" as taskqueue {
-            [index-create-queue] as queue
-        }
-        [Search API] as searchapi
+
     }
+
+    [Azure Service Plan]
+
 }
 
 actor User as user
 
-scrape --> github : 1. scraping
-scrape -r-> bucket : 2. put GitHub urls
-bucket -d-> indexer : 3. notification
-indexer -l-> queue : 4. put task
-queue -r-> indexer : 5. execute task
-indexer --> syntax_checker : 6. syntax check
-indexer --> renderer : 7. rendering
-indexer -u-> entity : 8. put
-web -u-> entity : 9. get
-web -d-> searchapi : 10. search
-web -r-> user : 11. show web page
+SC --> GA : run workflow
+GA --> FA : push to Azure
+FA --> user : show web page
+FA <--> cs : store & retrieve video
+API -r-> internet : show web page
+API <--> WA : API calls
 
 @enduml
