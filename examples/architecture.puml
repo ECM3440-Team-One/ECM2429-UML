@@ -18,7 +18,7 @@ package "Azure" {
         [Video Storage bucket]
     }
 
-    node "Azure Function App" as FA {
+    node "Azure Static Web App" as FA {
         frame "Web App" as WA {
             [Azure Upload] as AU
             [Audio Capture] as AC
