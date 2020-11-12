@@ -8,8 +8,8 @@ cloud {
     }
 }
 
-cloud {
-    [Internet] as internet
+cloud "Internet" {
+    [YouTube] as youtube
 }
 
 package "Azure" {
@@ -18,13 +18,18 @@ package "Azure" {
         [Video Storage bucket]
     }
 
+    [Azure Service Plan]
+    [ffmpeg] as ffmpeg
+    [Transcription] as TR
+
     node "Azure Static Web App" as FA {
         frame "Web App" as WA {
-            [Azure Upload] as AU
             [Audio Capture] as AC
             [Video Capture] as VC
-            [Video Upload] as VU
+            [Video Upload to Azure] as VUA
+            [Video Upload to YouTube] as VUY
             [Video Download] as VD
+            [Video Editing] as VE
             [Video Playback] as VP
             [Feedback Form] as FF
             [HTML Web Pages] as HTML
@@ -39,17 +44,20 @@ package "Azure" {
 
     }
 
-    [Azure Service Plan]
-
 }
+
+
 
 actor User as user
 
 SC --> GA : run workflow
 GA --> FA : push to Azure
 FA --> user : show web page
-FA <--> cs : store & retrieve video
-API -r-> internet : show web page
 API <--> WA : API calls
+WA <--> cs : retrieve video
+VUY --> youtube : upload video
+VUA --> cs : upload video
+ffmpeg <--> VE : merge video & audio files
+TR <--> HTTPJSONTranscript : create transcript
 
 @enduml
